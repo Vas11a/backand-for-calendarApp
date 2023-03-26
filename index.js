@@ -117,7 +117,24 @@ app.post("/findRoom", async (req, res) => {
 
 app.get("/test", (req, res) => {
   res.send('api is working')
-})
+});
+
+app.post("/removeMess",  async (req, res) => {
+  try {
+    
+    const room = await calendarCol.findOne({name: req.body.currentName});
+    let newDays = room.days;
+    newDays.forEach(element => {
+      if (element.data === req.body.data) {
+        element.messages.otherMess.splice(req.body.idx, 1);
+      };
+    });
+    await calendarCol.updateOne({_id: room._id}, {$set: {days: newDays}});
+    res.send('all good')
+  } catch (error) {
+    res.send('error')
+  }
+});
 
 
 MongoClient.connect(url, { useUnifiedTopology: true })
