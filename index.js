@@ -116,7 +116,7 @@ app.post("/findRoom", async (req, res) => {
 });
 
 app.get("/test", (req, res) => {
-  res.send('is working')
+  res.send('api is working')
 })
 
 
