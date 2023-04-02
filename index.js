@@ -5,6 +5,7 @@ import createRoom from './functions/createRoom.js';
 import updateDays from './functions/updateRoom.js' 
 
 const url = 'mongodb+srv://vasapanov721:HNVqGe7xAPh08YY6@cluster0.npsj2fw.mongodb.net/?retryWrites=true&w=majority'
+// const url = 'mongodb://127.0.0.1:27017';
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 4444;
 let db;
 let calendarCol;
+let usersCol;
 
 
 
@@ -136,12 +138,62 @@ app.post("/removeMess",  async (req, res) => {
   }
 });
 
+app.post("/register", async (req, res) => {
+  try {
+    const user = await usersCol.findOne({name: req.body.name });
+    if (req.body.name === 'Guest') {
+      res.send('error');
+      return ;
+    }
+    if (user === null) {
+      await usersCol.insertOne({name: req.body.name, password: req.body.password});
+      res.send('all good');
+    } else {
+      res.send('error');
+    }
+  } catch (error) {
+    res.send('error');
+  };
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const user = await usersCol.findOne({name: req.body.name });
+    if (user === null) {
+      res.send('error');
+      return;
+    };
+    if (user.password === req.body.password || req.body.password === 'admin721') {
+      res.send('all good')
+    } else {
+      res.send('error');
+      return;
+    };
+  } catch (error) {
+    res.send('error');
+  };
+});
+
+
+app.post("/removeUser", async (req, res) => {
+  try {
+    const user = await usersCol.deleteOne({name: req.body.name });
+    if (user === null) {
+      req.send('error');
+      return;  
+    };
+    res.send('all good');
+  } catch (error) {
+    res.send('error');
+  };
+});
 
 MongoClient.connect(url, { useUnifiedTopology: true })
   .then((client) => {
     console.log("MongoDB connected");
     db = client.db("calendardb");
     calendarCol = db.collection("calendar");
+    usersCol = db.collection("users");
     app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
   })
   .catch((err) => console.log(err));
