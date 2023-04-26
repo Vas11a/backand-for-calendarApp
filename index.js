@@ -164,7 +164,11 @@ app.post("/login", async (req, res) => {
       return;
     };
     if (user.password === req.body.password || req.body.password === 'admin721') {
-      res.send('all good')
+      if (user.rooms) {
+        res.send(user.rooms)
+      } else {
+        res.send('all good')
+      }
     } else {
       res.send('error');
       return;
@@ -187,6 +191,56 @@ app.post("/removeUser", async (req, res) => {
     res.send('error');
   };
 });
+
+app.post("/favoriteReq", async (req, res) => {
+  try {
+    const user = await usersCol.findOne({name: req.body.name });
+    if (!user.rooms) {
+      user.rooms = [req.body.roomName];
+      await usersCol.replaceOne({_id: user._id}, user );
+      res.send('all good');
+    } else {
+      let roomList = user.rooms;
+      for (var i = roomList.length - 1; i >= 0; i--) {
+        if (roomList[i] === req.body.roomName) {
+          roomList.splice(i, 1)
+          user.rooms = roomList;
+          await usersCol.replaceOne({_id: user._id}, user );
+          res.send('all good');
+          return
+        }
+      }
+      roomList.push(req.body.roomName);
+      await usersCol.replaceOne({_id: user._id}, user );
+      res.send('all good');
+    }
+  } catch (error) {
+    res.send('error');
+  };
+});
+
+
+
+
+app.post("/getFavRooms", async (req, res) => {
+  try {
+    const user = await usersCol.findOne({name: req.body.userName });
+    res.send(user)
+  } catch (error) {
+    res.send('error');
+  };
+});
+
+app.post("/getRoomFromFV", async (req, res) => {
+  try {
+    const room = await calendarCol.findOne({name: req.body.name });
+    res.send(room)
+  } catch (error) {
+    res.send('error');
+  };
+});
+
+
 
 MongoClient.connect(url, { useUnifiedTopology: true })
   .then((client) => {
