@@ -225,11 +225,24 @@ app.post("/favoriteReq", async (req, res) => {
 app.post("/getFavRooms", async (req, res) => {
   try {
     const user = await usersCol.findOne({name: req.body.userName });
+    const roomNames = await calendarCol.find({}, { projection: {_id:0,  name: 1 } }).toArray();
+    let roomNamesArr = [];
+    roomNames.forEach(elem => {
+      roomNamesArr.push(elem.name)
+    })
+    user.rooms.forEach((room, idx) => {
+      if (!roomNamesArr.includes(room)) {
+        user.rooms.splice(idx, 1)
+      }
+    })
+    await usersCol.replaceOne({_id: user._id}, user );
     res.send(user)
   } catch (error) {
     res.send('error');
   };
 });
+
+
 
 app.post("/getRoomFromFV", async (req, res) => {
   try {
@@ -258,3 +271,7 @@ MongoClient.connect(url, { useUnifiedTopology: true })
 
 
 
+
+
+
+  
