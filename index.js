@@ -247,6 +247,8 @@ app.post("/getFavRooms", async (req, res) => {
 app.post("/getRoomFromFV", async (req, res) => {
   try {
     const room = await calendarCol.findOne({name: req.body.name });
+    await calendarCol.updateOne({_id: room._id}, {$set: {days: updateDays(room.days)}});
+    room.days = updateDays(room.days);
     res.send(room)
   } catch (error) {
     res.send('error');
